@@ -1,6 +1,6 @@
 # TANGO target architecture
 
-**Design only:** no application modules below are claimed to exist yet.
+**Implementation status:** the browser MVP implements the domain, application, synthetic-fixture and delivery layers. A server, real data pipeline, authenticated accounts and LLM explainer are **not implemented**.
 
 ## Trust boundary
 
@@ -12,6 +12,23 @@ Verified selected customer and approved scenario → deterministic evaluator →
 | Application | Typed use cases, consent state, orchestration | Concrete third-party service classes |
 | Infrastructure | Data loaders, SQL/CSV, cache, providers | UI components |
 | Delivery | HTTP routes, React, voice/chat | Hidden financial rules |
+
+### Current implementation (Nov 2026)
+
+- `src/domain/finance.js`: snapshots and approved shocks, validation, deterministic monthly cents-based liquidity simulation, formatters.
+- `src/domain/goals.js`: optional explicit goal planning from user-specified name/amount/savings/deadline.
+- `src/application/customerService.js`: selects one customer, checks transaction ownership and rejects a scenario from another customer.
+- `src/infrastructure/demoCustomers.js`: defensive copies of exactly three fictional personas and sample transactions.
+- `src/delivery/app.js` and `styles.css`: dependency-free SPA and responsive view; switching customers resets state.
+- `tests/finance.test.js`: domain, validation, shock schedule, isolation and goal cases.
+
+**Why no framework or backend yet?** A small, standard ECMAScript frontend with zero dependencies makes the core demonstration reproducible even without package-registry access. The domain and application functions have stable seams and can later be consumed by a React app or service without copying rules into components. This is not an authenticated or scalable bank product.
+
+**Data provenance:** all values are synthetic, in Canadian cents, and have no empirical provenance. Sample monthly snapshots are fixture estimates separate from the deliberately incomplete transaction subset. No historical account data, military pay rates or player earnings are represented.
+
+**Scenario contract:** `type` (`income_drop`, `expense_increase`, `one_time_cost`), `unit` (`percent` or `cents` according to type), finite nonnegative `amount`, explicit `startMonth` (1–36), `durationMonths` (1–36), and `approved=true`. Income loss cannot exceed 100%; expense increases can reach 5,000%; one-time costs are bounded by a documented safe-cents limit. Invalid numbers, units and dates throw a visible error.
+
+**Interpretation:** an input shock influences selected calendar-relative months. Cash is updated by income minus expenses in each month, starting from reported liquid savings. Results show the first negative monthly ending balance, worst aggregate funding gap, shocked-month cash gap, and a 12-month outcome. A shortfall is not an automatic loan. The plan calculator uses the lowest simulated monthly net income within the available simulation window and is therefore illustrative, not a guarantee.
 
 ## Intended contracts (to agree before implementing)
 - **CustomerContext:** selected client, permitted accounts, source and version.
