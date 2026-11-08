@@ -1,5 +1,6 @@
 import { currency, percent } from '../domain/finance.js';
 import { customerService } from './customerService.js';
+import { renderDataLab, selectedResearchAccountId, handleDataLabClick, handleDataLabInput, handleDataLabSubmit } from './dataLab.js';
 
 const { listCustomers, getCustomerContext, runCustomerScenario, calculateCustomerGoal } = customerService;
 
@@ -23,6 +24,7 @@ const state = {
 };
 
 const nav = [
+  ['dataset', 'Account explorer', 'search'],
   ['overview', 'Overview', 'home'],
   ['scenario', 'Resilience lab', 'activity'],
   ['goals', 'My goals', 'target'],
@@ -73,7 +75,7 @@ function shell(context) {
     </aside>
     <div class="content-shell"><header class="topbar">
       <div class="top-left"><button class="mobile-toggle" aria-label="Toggle navigation" data-action="menu">${icon('menu')}</button><span class="breadcrumb">My financial space</span><span class="breadcrumb-separator">/</span><strong>${nav.find(item => item[0] === state.page)?.[1]}</strong></div>
-      <div class="top-actions"><span class="demo-pill"><span></span> LIVE DEMO · FICTIONAL DATA</span><div class="account-control"><span class="avatar" style="--avatar:${context.tone}">${context.initials}</span><div class="account-names"><strong>${esc(context.name)}</strong><small>Demo customer</small></div>${icon('chevron', 16)}<select id="customer-select" aria-label="Switch demo customer">${customers.map(c => `<option value="${c.id}" ${state.customerId === c.id ? 'selected' : ''}>${esc(c.name)} — ${esc(c.role)}</option>`).join('')}</select></div></div>
+      <div class="top-actions">${state.page === 'dataset' ? `<span class="demo-pill"><span></span> HISTORICAL · ANONYMIZED</span><div class="account-control"><span class="avatar" style="--avatar:#fff0e4">#</span><div class="account-names"><strong>${selectedResearchAccountId() ? `Account ${selectedResearchAccountId()}` : 'Account explorer'}</strong><small>Competition dataset</small></div></div>` : `<span class="demo-pill"><span></span> LIVE DEMO · FICTIONAL DATA</span><div class="account-control"><span class="avatar" style="--avatar:${context.tone}">${context.initials}</span><div class="account-names"><strong>${esc(context.name)}</strong><small>Demo customer</small></div>${icon('chevron', 16)}<select id="customer-select" aria-label="Switch demo customer">${customers.map(c => `<option value="${c.id}" ${state.customerId === c.id ? 'selected' : ''}>${esc(c.name)} — ${esc(c.role)}</option>`).join('')}</select></div>`}</div>
     </header><main class="main" id="main-content">${renderPage(context)}</main>
     <footer class="footer"><span>${brandmark(22)} TANGO</span><span>Illustrative demo only. Not a bank, account service, or financial adviser.</span><span>Made with care, for life's what-ifs.</span></footer></div>
   </div>`;
@@ -189,6 +191,7 @@ function insightsPage(context) {
 
 function renderPage(context) {
   switch (state.page) {
+    case 'dataset': return renderDataLab();
     case 'scenario': return scenarioPage(context);
     case 'goals': return goalsPage(context);
     case 'activity': return activityPage(context);
@@ -256,6 +259,7 @@ function goalFromForm() {
 }
 
 document.addEventListener('click', event => {
+  if (handleDataLabClick(event, render)) return;
   const navButton = event.target.closest('[data-nav]');
   if (navButton) { setPage(navButton.dataset.nav); return; }
   const typeButton = event.target.closest('[data-shock-type]');
@@ -296,6 +300,7 @@ document.addEventListener('change', event => {
 });
 
 document.addEventListener('input', event => {
+  if (handleDataLabInput(event)) return;
   if (event.target.id === 'shock-slider') {
     state.shockAmount=Number(event.target.value); invalidateScenario();
     const amountInput=document.querySelector('#shock-amount'); if (amountInput) amountInput.value=String(state.shockAmount);
@@ -315,6 +320,10 @@ document.addEventListener('input', event => {
     const cursor=event.target.selectionStart; render();
     const input=document.querySelector('#activity-search'); input?.focus(); input?.setSelectionRange(cursor,cursor);
   }
+});
+
+document.addEventListener('submit', event => {
+  if (event.target.id.startsWith('lab-')) void handleDataLabSubmit(event, render);
 });
 
 render();

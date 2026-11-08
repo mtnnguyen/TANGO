@@ -1,0 +1,33 @@
+{
+  "source": "Sheridan Datathon 2026 Tangerine track, supplied anonymized banking CSVs",
+  "period": "2020–2025 (historical, not live bank information)",
+  "accounts": 4500,
+  "monthlyRows": 185326,
+  "loans": 682,
+  "incomeBelowSpendingAccounts": 1181,
+  "incomeBelowSpendingPercent": 26.2,
+  "combinedShock": "Income retained at 55% and household bills increased by 15%; no one-off charge",
+  "shockNoShortfallAccounts": 184,
+  "shockBelowThreeMonthsAccounts": 523,
+  "shockBelowThreeMonthsPercent": 11.6,
+  "shockBelowSixMonthsAccounts": 1752,
+  "medianFiniteShockRunwayMonths": 7.4,
+  "finiteShockRunwayP25Months": 4.2,
+  "finiteShockRunwayP75Months": 16.7,
+  "activeAccountsForQuartileComparison": 4419,
+  "lowestIncomeQuartile": {
+    "accounts": 1104,
+    "medianIncome": 2282.52,
+    "medianBufferToSpending": 8.02,
+    "underThreeMonths": 26,
+    "underThreeMonthsPercent": 2.4
+  },
+  "highestIncomeQuartile": {
+    "accounts": 1105,
+    "medianIncome": 17759.26,
+    "medianBufferToSpending": 1.87,
+    "underThreeMonths": 253,
+    "underThreeMonthsPercent": 22.9
+  },
+  "limitations": "Descriptive historical account-level statistics, not population estimates or causation. Uses track benchmark formulas; negative buffers count as zero months of runway."
+}
