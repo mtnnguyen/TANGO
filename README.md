@@ -1,5 +1,13 @@
 # TANGO
 
+## Sheridan Datathon: account explorer
+
+Open **Account explorer** in the sidebar to inspect any of the 4,500 anonymized account IDs in the provided Tangerine-track data extract. It shows the track benchmark income, spending, fixed costs, and six-month buffer; runs arbitrary income, household-bill, one-time-cost, timing and duration shocks; and builds explicitly user-defined emergency fund and backup plans. The other customer screens are **fictional demonstration personas** kept separate from the historical account explorer.
+
+The historical dataset covers 2020–2025. TANGO is a prototype, not a bank account service. See [research methodology, precise equations and limitations](docs/research.md). The public demo contains derived, anonymized account-level aggregates only, not raw transactions or client identities.
+
+To reproduce the summary from organizer-provided files, run `python3 scripts/prepare_bank_data.py --data-dir /path/to/competition/csvs`. Run `npm run check`, `npm test`, `python3 -m unittest discover -s tests -p '*_test.py'`, and `npm run build` locally; `.github/workflows/ci.yml` runs these checks on pull requests.
+
 **Status:** Working, self-contained customer-facing prototype with synthetic customer fixtures, a deterministic financial-resilience engine, goals, activity browsing and automated unit tests. This is **not** connected to real accounts, a banking API, or a production authentication system.
 
 ## Mission
