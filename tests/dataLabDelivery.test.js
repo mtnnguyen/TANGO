@@ -27,6 +27,8 @@ test('account explorer loads an exact ID, re-evaluates a twist, and clears state
   try {
     assert.equal(selectedResearchAccountId(), null);
     assert.match(renderDataLab(), /4,500 accounts available/);
+    assert.match(renderDataLab(), /data-lab-example="20253"/);
+    assert.ok(data.accounts['20253'].household > 0, 'example account must have a real nonzero household-bills figure for judge twists');
     await preloadResearch(render);
     assert.match(researchBanner.outerHTML, /Highest money-in quartile/);
     assert.equal(fields['#lab-account-id'].value, '20111');

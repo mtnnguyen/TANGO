@@ -46,10 +46,10 @@ function researchBanner() {
 
 function accountLookup() {
   return `<section class="panel lab-search-panel"><div class="panel-top"><div><div class="panel-kicker">01 / KNOW THE CUSTOMER</div><h3>Look up an account</h3></div>${pill('4,500 accounts available')}</div><p class="panel-desc">Enter an anonymized account ID from the competition dataset. This view never combines financial records across accounts.</p>
-  <form id="lab-account-form" class="lab-lookup"><label class="lab-field"><span>Account ID</span><div class="lab-input-row"><input id="lab-account-id" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="12" placeholder="e.g. 20111" value="${escape(state.requestedId)}" autocomplete="off" required /></div></label><button class="button button-dark" type="submit">Load account →</button></form>
+  <form id="lab-account-form" class="lab-lookup"><label class="lab-field"><span>Account ID</span><div class="lab-input-row"><input id="lab-account-id" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="12" placeholder="e.g. 20253" value="${escape(state.requestedId)}" autocomplete="off" required /></div></label><button class="button button-dark" type="submit">Load account →</button></form>
   ${state.status === 'loading' ? '<p class="lab-message" role="status">Loading historical account summaries…</p>' : ''}
   ${state.errors.lookup ? `<div class="form-error" role="alert">${escape(state.errors.lookup)}</div>` : ''}
-  <div class="lab-example">Have a twist card? Enter its account ID. Just exploring? <button type="button" data-lab-example="20111">Try example account #20111</button></div>
+  <div class="lab-example">Have a twist card? Enter its account ID. Just exploring? <button type="button" data-lab-example="20253">Try example account #20253</button></div>
   <p class="lab-source">Source: Sheridan Datathon 2026 anonymized banking dataset · historical 2020–2025 · no live bank connections.</p></section>`;
 }
 

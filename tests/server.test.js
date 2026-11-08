@@ -18,6 +18,12 @@ test('development server serves the app and blocks repository metadata', async (
     const labCss = await fetch(`${base}/src/delivery/dataLab.css`);
     assert.equal(labCss.status, 200);
     assert.match(labCss.headers.get('content-type'), /css/);
+    const mainCss = await fetch(`${base}/src/delivery/styles.css`);
+    assert.equal(mainCss.status, 200);
+    assert.match(mainCss.headers.get('content-type'), /css/);
+    const mainStyles = await mainCss.text();
+    assert.match(mainStyles, /^@import url\('[^\r\n]*'\);/, 'font URL must be a single valid CSS string');
+    assert.match(mainStyles, /\.app-shell\s*\{/, 'banking layout styles must load');
     const summaries = await fetch(`${base}/public/data/account_summaries.json`);
     assert.equal(summaries.status, 200);
     assert.equal(Object.keys((await summaries.json()).accounts).length, 4500);
