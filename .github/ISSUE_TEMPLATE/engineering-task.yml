@@ -1,0 +1,41 @@
+name: Engineering task
+description: A small, testable TANGO implementation or cleanup request.
+title: "[Task] "
+body:
+  - type: dropdown
+    id: owner
+    attributes:
+      label: Suggested specialist
+      options:
+        - ATLAS - architecture
+        - LEDGER - data
+        - SHIELD - financial engine
+        - COMPASS - goals and product
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Observed problem and evidence
+      placeholder: Which TANGO file, result, or failing test demonstrates this issue?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and exclusions
+      placeholder: Name the modules to change and what must stay untouched.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance checklist and tests
+      placeholder: "- [ ] Expected behavior is verified\n- [ ] Relevant regression tests pass"
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and risks
+      placeholder: Which contracts or other issues must be ready first?
