@@ -1167,6 +1167,10 @@ a{
   min-width:0
 }
 
+.fixed-duration{
+  font-size: 11px;
+  color: #555b55;
+}
 .input-wrap select{
   border:0;
   background:transparent;

@@ -78,10 +78,10 @@ export function evaluateScenario(snapshot, shock, horizonMonths = 12) {
     months.push({ month, active, incomeCents, spendingCents, netCents, endingBalanceCents: balanceCents });
   }
 
-  const firstActive = months[Math.min(shock.startMonth, horizonMonths) - 1];
-  const shockMonthlyGapCents = shock.type === 'one_time_cost'
-    ? Math.max(0, -baselineNetCents)
-    : Math.max(0, -firstActive.netCents);
+  // Include a one-time bill in the affected month's cash flow, too.
+  // A shock starting beyond the horizon has no affected month in this view.
+  const firstActive = months.find(month => month.active);
+  const shockMonthlyGapCents = firstActive ? Math.max(0, -firstActive.netCents) : 0;
   const endBalanceCents = months.at(-1).endingBalanceCents;
   return Object.freeze({
     customerId: snapshot.customerId,

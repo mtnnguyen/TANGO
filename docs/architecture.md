@@ -17,9 +17,10 @@ Verified selected customer and approved scenario → deterministic evaluator →
 
 - `src/domain/finance.js`: snapshots and approved shocks, validation, deterministic monthly cents-based liquidity simulation, formatters.
 - `src/domain/goals.js`: optional explicit goal planning from user-specified name/amount/savings/deadline.
-- `src/application/customerService.js`: selects one customer, checks transaction ownership and rejects a scenario from another customer.
+- `src/application/customerService.js`: repository-agnostic customer use cases, validates selected identity and transaction ownership, and rejects scenarios from another customer.
 - `src/infrastructure/demoCustomers.js`: defensive copies of exactly three fictional personas and sample transactions.
-- `src/delivery/app.js` and `styles.css`: dependency-free SPA and responsive view; switching customers resets state.
+- `src/delivery/customerService.js`: application composition root, injecting the demo repository adapter into the customer use cases.
+- `src/delivery/app.js` and `styles.css`: dependency-free SPA and responsive view; switching customers resets state, and editing a scenario or goal immediately invalidates its previous result.
 - `tests/finance.test.js`: domain, validation, shock schedule, isolation and goal cases.
 
 **Why no framework or backend yet?** A small, standard ECMAScript frontend with zero dependencies makes the core demonstration reproducible even without package-registry access. The domain and application functions have stable seams and can later be consumed by a React app or service without copying rules into components. This is not an authenticated or scalable bank product.

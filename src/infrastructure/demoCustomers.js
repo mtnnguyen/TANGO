@@ -40,3 +40,8 @@ export function loadDemoCustomer(customerId) {
   if (!profile) throw new RangeError(`Unknown or unauthorized demo customer: ${customerId}`);
   return structuredClone({ ...profile, snapshot: { customerId, ...profile.snapshot }, transactions: profile.transactions.map(([date, merchant, category, amountCents], index) => ({ id: `${customerId}-${index}`, customerId, date, merchant, category, amountCents })) });
 }
+
+export const demoCustomerRepository = Object.freeze({
+  listCustomers: allDemoCustomers,
+  getCustomer: loadDemoCustomer
+});

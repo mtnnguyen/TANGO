@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateScenario, validateShock } from '../src/domain/finance.js';
 import { evaluateGoal } from '../src/domain/goals.js';
-import { listCustomers, getCustomerContext, runCustomerScenario, calculateCustomerGoal } from '../src/application/customerService.js';
+import { createCustomerService } from '../src/application/customerService.js';
+import { demoCustomerRepository } from '../src/infrastructure/demoCustomers.js';
+
+const { listCustomers, getCustomerContext, runCustomerScenario, calculateCustomerGoal } = createCustomerService(demoCustomerRepository);
 
 const snapshot = { customerId: 'a', monthlyIncomeCents: 300000, essentialSpendingCents: 180000, flexibleSpendingCents: 100000, liquidSavingsCents: 100000 };
 const shock = { type: 'income_drop', unit: 'percent', amount: 50, startMonth: 1, durationMonths: 6, approved: true };
@@ -25,6 +28,21 @@ test('one-time cost lands in exactly the requested start month', () => {
   assert.equal(result.months[1].netCents, 20000);
   assert.equal(result.months[2].netCents, -380000);
   assert.equal(result.months[3].netCents, 20000);
+  assert.equal(result.shockMonthlyGapCents, 380000);
+  assert.equal(result.additionalBufferNeededCents, 240000);
+});
+test('one-time cost includes the emergency expense in its monthly shortfall', () => {
+  const scenario = { type: 'one_time_cost', unit: 'cents', amount: 400000, startMonth: 1, durationMonths: 1, approved: true };
+  const result = evaluateScenario(snapshot, scenario, 1);
+  assert.equal(result.months[0].netCents, -380000);
+  assert.equal(result.shockMonthlyGapCents, 380000);
+  assert.equal(result.additionalBufferNeededCents, 280000);
+  assert.equal(result.firstShortfallMonth, 1);
+});
+test('a shock outside the horizon is not silently considered active', () => {
+  const result = evaluateScenario(snapshot, { ...shock, startMonth: 13 }, 12);
+  assert.equal(result.shockMonthlyGapCents, 0);
+  assert.ok(result.months.every(month => !month.active));
 });
 test('rejects unapproved, over-100% income loss, NaN, ambiguous unit, invalid dates', () => {
   for (const change of [{ approved: false }, { amount: 101 }, { amount: NaN }, { unit: 'cents' }, { startMonth: -1 }, { durationMonths: 0 }]) {
@@ -44,6 +62,20 @@ test('explicit customer scoping, isolation and defensive copies', () => {
   assert.notEqual(getCustomerContext(first.id).snapshot.monthlyIncomeCents, 1);
   assert.throws(() => getCustomerContext('does-not-exist'));
   assert.throws(() => calculateCustomerGoal(first.id, { name: 'X', targetCents: 10000, alreadySavedCents: 0, monthsToGoal: 5 }, runCustomerScenario(second.id, shock)));
+});
+test('application uses an injected repository and rejects customer identity mismatches', () => {
+  const service = createCustomerService({
+    listCustomers: () => [{ id: 'a' }],
+    getCustomer: id => ({ id, snapshot: { ...snapshot, customerId: id }, transactions: [{ customerId: id }] })
+  });
+  assert.equal(service.getCustomerContext('a').snapshot.customerId, 'a');
+  assert.equal(service.runCustomerScenario('a', shock).customerId, 'a');
+  assert.throws(() => createCustomerService({ getCustomer: () => null }));
+  const contaminated = createCustomerService({
+    listCustomers: () => [{ id: 'a' }],
+    getCustomer: id => ({ id, snapshot: { ...snapshot, customerId: 'someone-else' }, transactions: [] })
+  });
+  assert.throws(() => contaminated.getCustomerContext('a'), /identity mismatch/i);
 });
 test('goal math never invents a target or deadline', () => {
   const result = evaluateGoal(snapshot, { name: 'Emergency fund', targetCents: 500000, alreadySavedCents: 100000, monthsToGoal: 10 });

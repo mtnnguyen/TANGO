@@ -1,5 +1,7 @@
 import { currency, percent } from '../domain/finance.js';
-import { listCustomers, getCustomerContext, runCustomerScenario, calculateCustomerGoal } from '../application/customerService.js';
+import { customerService } from './customerService.js';
+
+const { listCustomers, getCustomerContext, runCustomerScenario, calculateCustomerGoal } = customerService;
 
 const customers = listCustomers();
 const state = {
@@ -125,8 +127,11 @@ function overview(context) {
     <section class="overview-grid bottom-grid"><div class="panel"><div class="panel-top"><div><div class="panel-kicker">RECENT ACTIVITY</div><h3>Your latest transactions</h3></div><button class="text-action" data-nav="activity">View all ${icon('arrow',15)}</button></div>${activityList(context)}</div><div class="panel goals-panel"><div class="panel-top"><div><div class="panel-kicker">LOOKING AHEAD</div><h3>Goals worth planning for</h3></div><span class="panel-mini-icon">${icon('target')}</span></div>${context.goals.map((goal, i) => `<div class="goal-mini"><div class="goal-mini-icon">${i === 0 ? '✳' : '↗'}</div><div><strong>${esc(goal.name)}</strong><span>${fmt(goal.alreadySavedCents)} of ${fmt(goal.targetCents)}</span></div><strong>${Math.min(100,Math.round(percent(goal.alreadySavedCents, goal.targetCents)))}%</strong></div><div class="goal-progress"><span style="width:${Math.min(100, percent(goal.alreadySavedCents,goal.targetCents))}%"></span></div>`).join('')}<button class="text-action goal-cta" data-nav="goals">Build my goal plan ${icon('arrow',15)}</button></div></section>`;
 }
 
+function scenarioEmptyResult() {
+  return `<div class="empty-result"><div class="empty-result-icon">${brandmark(72)}</div><span class="panel-kicker">YOUR RESULTS WILL APPEAR HERE</span><h3>Meet the unexpected<br/>with a plan.</h3><p>Adjust the scenario, then calculate to see what happens to your cash flow, savings, and financial runway.</p><div class="empty-facts"><div>${icon('check',17)} Clear calculations</div><div>${icon('check',17)} No hidden assumptions</div><div>${icon('check',17)} Choices you can act on</div></div></div>`;
+}
+
 function scenarioPage(context) {
-  const s = context.snapshot;
   const result = state.scenario;
   const isIncome = state.shockType === 'income_drop', isOneTime = state.shockType === 'one_time_cost';
   const typeDescriptions = { income_drop: 'A pay cut, missed shifts, or lost contract', expense_increase: 'Higher rent, bills, or recurring costs', one_time_cost: 'An unexpected repair or major expense' };
@@ -137,10 +142,10 @@ function scenarioPage(context) {
     <div class="form-separator"></div><div class="field-heading">${isOneTime ? 'Cost of the unexpected expense' : 'Size of the change'} <span>${isOneTime ? 'CAD' : '%'}</span></div>
     <div class="shock-value-wrap"><span class="shock-big-value">${isOneTime ? '$' : ''}</span><input aria-label="${isOneTime ? 'Unexpected expense in dollars' : 'Shock percentage'}" id="shock-amount" class="shock-big-input" type="number" min="0" max="${isOneTime ? '10000000' : isIncome ? '100' : '5000'}" step="${isOneTime ? '1' : '0.5'}" value="${isOneTime ? state.oneTimeAmount : state.shockAmount}"/><span class="shock-big-value">${isOneTime ? 'CAD' : '%'}</span></div>
     ${isOneTime ? '<p class="hint">Enter a one-time amount. We apply it once, on the selected month.</p>' : `<input id="shock-slider" class="shock-slider" aria-label="Adjust shock percentage" type="range" min="0" max="${isIncome ? 100 : 300}" step="1" value="${Math.min(isIncome ? 100 : 300, state.shockAmount)}"/><div class="slider-labels"><span>0%</span><span>${isIncome ? '100%' : '300%'}</span></div>`}
-    <div class="two-fields"><label>When does it start?<div class="input-wrap">${icon('calendar',17)}<select id="shock-start" aria-label="Start month">${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${state.shockStart === i+1 ? 'selected' : ''}>${i===0?'Next month':`In ${i+1} months`}</option>`).join('')}</select>${icon('chevron',15)}</div></label><label>How long does it last?<div class="input-wrap">${icon('clock',17)}<select id="shock-duration" aria-label="Duration">${[1,2,3,4,6,9,12,18,24,36].map(n=>`<option value="${n}" ${state.shockDuration === n ? 'selected' : ''}>${n} month${n>1?'s':''}</option>`).join('')}</select>${icon('chevron',15)}</div></label></div>
+    <div class="two-fields"><label>When does it start?<div class="input-wrap">${icon('calendar',17)}<select id="shock-start" aria-label="Start month">${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${state.shockStart === i+1 ? 'selected' : ''}>${i===0?'Next month':`In ${i+1} months`}</option>`).join('')}</select>${icon('chevron',15)}</div></label>${isOneTime ? `<label>How often?<div class="input-wrap">${icon('clock',17)}<span class="fixed-duration">Once, in the selected month</span></div></label>` : `<label>How long does it last?<div class="input-wrap">${icon('clock',17)}<select id="shock-duration" aria-label="Duration">${[1,2,3,4,6,9,12,18,24,36].map(n=>`<option value="${n}" ${state.shockDuration === n ? 'selected' : ''}>${n} month${n>1?'s':''}</option>`).join('')}</select>${icon('chevron',15)}</div></label>`}</div>
     <div class="consent-note">${icon('info',17)} Nothing is saved or applied to a real account. Select “Calculate impact” to approve this one simulated scenario.</div>
     <button class="button button-orange full-width" data-action="evaluate">Calculate impact ${icon('arrow',18)}</button>${state.notice ? `<div class="form-error" role="alert">${esc(state.notice)}</div>` : ''}</section>
-    <section class="scenario-results">${result ? resultMarkup(result, context) : `<div class="empty-result"><div class="empty-result-icon">${brandmark(72)}</div><span class="panel-kicker">YOUR RESULTS WILL APPEAR HERE</span><h3>Meet the unexpected<br/>with a plan.</h3><p>Adjust the scenario, then calculate to see what happens to your cash flow, savings, and financial runway.</p><div class="empty-facts"><div>${icon('check',17)} Clear calculations</div><div>${icon('check',17)} No hidden assumptions</div><div>${icon('check',17)} Choices you can act on</div></div></div>`}</section></div>
+    <section class="scenario-results">${result ? resultMarkup(result, context) : scenarioEmptyResult()}</section></div>
     <section class="trust-strip">${icon('shield',18)} <span><strong>In control, always.</strong> This is an illustration using fictional finances. We never change account data, and no loan or overdraft is assumed.</span></section>`;
 }
 
@@ -151,7 +156,7 @@ function resultMarkup(result, context) {
   const labels = ['Now', ...result.months.map(m => `M${m.month}`)];
   const series = [{value:baseline},...result.months.map(m => ({value:m.endingBalanceCents}))];
   return `<div class="result-top"><div class="result-check">${icon('check',18)}</div><div><span class="panel-kicker">SCENARIO CALCULATED</span><h3>Here's what changes.</h3></div></div><div class="result-banner ${first ? 'at-risk' : 'comfortable'}"><span>${first ? 'WATCH YOUR CASH BUFFER' : 'YOUR BUFFER HOLDS UP'}</span><strong>${first ? `A cash shortfall begins in month ${first}.` : 'No cash shortfall in this window.'}</strong><p>${first ? 'Your liquid savings may run out unless something changes.' : 'Your cash position stays at or above $0 across the simulated months.'}</p></div>
-  <div class="result-metrics"><div><small>Cash buffer after ${result.months.length} months</small><strong class="${result.endingBalanceCents<0?'danger-text':''}">${fmt(result.endingBalanceCents)}</strong></div><div><small>Monthly shortfall during shock</small><strong>${fmt(result.shockMonthlyGapCents)}</strong></div><div><small>Extra buffer needed</small><strong>${fmt(result.additionalBufferNeededCents)}</strong></div><div><small>Impact vs. no shock</small><strong class="danger-text">${fmt(impact)}</strong></div></div>
+  <div class="result-metrics"><div><small>Cash buffer after ${result.months.length} months</small><strong class="${result.endingBalanceCents<0?'danger-text':''}">${fmt(result.endingBalanceCents)}</strong></div><div><small>Cash deficit in first shock month</small><strong>${fmt(result.shockMonthlyGapCents)}</strong></div><div><small>Extra buffer needed</small><strong>${fmt(result.additionalBufferNeededCents)}</strong></div><div><small>Impact vs. no shock</small><strong class="danger-text">${fmt(impact)}</strong></div></div>
   <div class="panel result-graph"><div class="panel-top"><div><div class="panel-kicker">YOUR CASH PROJECTION</div><h3>What your buffer looks like</h3></div><span class="soft-tag">${result.months.length}-month view</span></div>${lineChart(series,{labels,negative:true,height:190})}<div class="chart-foot">${icon('info',15)} Below $0 means an unfunded shortfall, not automatic borrowing.</div></div>
   <div class="nextstep-banner"><div class="nextstep-icon">${icon('target',20)}</div><div><strong>There's more than one way forward.</strong><p>Connect this scenario to a personal savings goal.</p></div><button class="button button-outline" data-nav="goals">See my options ${icon('arrow',16)}</button></div>`;
 }
@@ -162,7 +167,7 @@ function goalsPage(context) {
   const s = context.snapshot;
   return `${pageHeading('YOUR NEXT CHAPTER', 'Goals with a game plan<span class="orange-period">.</span>', 'Big life plans start with practical steps. See what reaching yours would take.')}
   <div class="goal-layout"><section class="panel goal-editor"><div class="panel-top"><div><div class="panel-kicker">STEP 02 / MAKE IT PERSONAL</div><h3>What are you working toward?</h3></div><span class="panel-mini-icon">${icon('target')}</span></div><p class="panel-desc">Start with a fictional example or write your own goal. We won't invent a target or a deadline.</p><div class="goal-pills">${context.goals.map((item,i)=>`<button data-goal="${i}" class="goal-pill ${state.goalIndex===i?'selected':''}">${esc(item.name)}</button>`).join('')}<button data-action="new-goal" class="goal-pill">${icon('plus',14)} New goal</button></div>
-  <div class="goal-inputs"><label>Goal name<input id="goal-name" type="text" maxlength="60" value="${esc(goal.name)}" placeholder="e.g. Emergency fund" /></label><label>Amount I want to reach (CAD)<input id="goal-target" type="number" min="0" max="10000000" step="1" value="${goal.targetCents/100}"/></label><label>Amount I already have (CAD)<input id="goal-saved" type="number" min="0" max="10000000" step="1" value="${goal.alreadySavedCents/100}"/></label><label>Months to reach my goal<input id="goal-months" type="number" min="1" max="120" step="1" value="${goal.monthsToGoal}"/></label></div><div class="consent-note">${icon('info',17)} Your plan is calculated from these inputs, not from an AI-generated guess. Nothing is saved to a bank.</div><button data-action="plan-goal" class="button button-orange full-width">Build my plan ${icon('arrow',17)}</button>${state.notice ? `<div class="form-error" role="alert">${esc(state.notice)}</div>` : ''}</section>
+  <div class="goal-inputs"><label>Goal name<input id="goal-name" type="text" maxlength="60" value="${esc(goal.name)}" placeholder="e.g. Emergency fund" /></label><label>Amount I want to reach (CAD)<input id="goal-target" type="number" min="0" max="10000000" step="1" value="${goal.targetCents == null ? '' : goal.targetCents/100}" placeholder="Enter target amount"/></label><label>Amount I already have (CAD)<input id="goal-saved" type="number" min="0" max="10000000" step="1" value="${goal.alreadySavedCents == null ? '' : goal.alreadySavedCents/100}" placeholder="Enter saved amount"/></label><label>Months to reach my goal<input id="goal-months" type="number" min="1" max="120" step="1" value="${goal.monthsToGoal ?? ''}" placeholder="Enter months"/></label></div><div class="consent-note">${icon('info',17)} Your plan is calculated from these inputs, not from an AI-generated guess. Nothing is saved to a bank.</div><button data-action="plan-goal" class="button button-orange full-width">Build my plan ${icon('arrow',17)}</button>${state.notice ? `<div class="form-error" role="alert">${esc(state.notice)}</div>` : ''}</section>
   <div>${g ? `<section class="panel goal-result"><div class="panel-kicker">YOUR GOAL PLAN</div><h3>${esc(g.name)}</h3><div class="goal-number">${fmt(g.requiredMonthlyCents)}<span>/ month</span></div><p>Put this much aside each month to cover the remaining ${fmt(g.remainingCents)} by your chosen date.</p><div class="goal-outcome ${g.feasible?'good':'needs-work'}">${icon(g.feasible?'check':'info',19)}<span>${g.feasible?'Looks possible with your current plan.':'Your current cash flow may need an adjustment.'}</span></div><div class="goal-facts"><div><span>Money available per month</span><b>${fmt(g.availableMonthlyCents)}</b></div><div><span>Extra monthly room needed</span><b>${fmt(g.monthlyAdjustmentCents)}</b></div><div><span>Scenario considered</span><b>${state.scenario?'Approved shock':'Current baseline'}</b></div></div><div class="options-panel"><div class="panel-kicker">TWO PRACTICAL OPTIONS</div><p><b>Option A · Adjust spending.</b> ${g.monthlyAdjustmentCents ? `Look for ${fmt(g.monthlyAdjustmentCents)} in monthly changes to close the gap.` : 'Keep your current monthly contribution on track.'}</p><p><b>Option B · Change the timeline.</b> Keep the same savings target but allow more months if your cash flow is tight.</p></div><span class="goal-caption">${g.note}</span></section>` : `<section class="goal-empty"><span class="empty-result-icon">${icon('target',42)}</span><div class="panel-kicker">YOUR GOAL, YOUR TIMELINE</div><h3>Make the future feel<br/>a little closer.</h3><p>Choose or edit a goal, then build a plan based on the numbers you entered.</p><div class="mini-goal-art"><span>01</span><div><span class="line"></span><span class="line short"></span></div><span>GO!</span></div></section>`}
   <div class="goal-tip"><div class="tip-icon">${icon('sparkles',19)}</div><div><strong>Planning for a career change?</strong><p>Whether income is seasonal, contract-based, or changing, test it in the Resilience lab first.</p><button class="text-action" data-nav="scenario">Open the lab ${icon('arrow',15)}</button></div></div></div></div>`;
 }
@@ -195,6 +200,35 @@ function renderPage(context) {
 function render() {
   document.querySelector('#app').innerHTML = shell(customer());
   document.title = `${nav.find(item=>item[0]===state.page)?.[1]} | TANGO`;
+}
+
+/** Clear the visual result immediately, without interrupting slider dragging or typing. */
+function invalidateScenario() {
+  state.scenario = null;
+  state.goalResult = null;
+  state.notice = '';
+  const resultPanel = document.querySelector('.scenario-results');
+  if (resultPanel) resultPanel.innerHTML = scenarioEmptyResult();
+}
+
+function invalidateGoalPlan() {
+  state.goalResult = null;
+  state.notice = '';
+  const resultPanel = document.querySelector('.goal-result');
+  if (resultPanel) {
+    resultPanel.innerHTML = `<div class="panel-kicker">PLAN NEEDS RECALCULATION</div><h3>Your goal has changed.</h3><p>Use “Build my plan” to calculate the result using your updated inputs.</p>`;
+  }
+}
+
+function updateGoalDraft() {
+  const value = selector => document.querySelector(selector)?.value ?? '';
+  const toCents = raw => raw.trim() === '' ? null : Math.round(Number(raw) * 100);
+  state.goalDraft = {
+    name: value('#goal-name'),
+    targetCents: toCents(value('#goal-target')),
+    alreadySavedCents: toCents(value('#goal-saved')),
+    monthsToGoal: value('#goal-months').trim() === '' ? null : Number(value('#goal-months'))
+  };
 }
 
 function setPage(page) {
@@ -231,7 +265,7 @@ document.addEventListener('click', event => {
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'menu') { state.menuOpen=!state.menuOpen; render(); return; }
   if (action === 'new-goal') {
-    state.goalDraft={name:'',targetCents:0,alreadySavedCents:0,monthsToGoal:12}; state.goalResult=null; render();
+    state.goalDraft={name:'',targetCents:null,alreadySavedCents:null,monthsToGoal:null}; state.goalResult=null; render();
     document.querySelector('#goal-name')?.focus(); return;
   }
   if (action === 'evaluate') {
@@ -251,20 +285,30 @@ document.addEventListener('change', event => {
   if (id === 'customer-select') {
     state.customerId=value; state.scenario=null; state.goalResult=null; state.goalDraft=null; state.goalIndex=0; state.activityCategory='All'; state.activitySearch=''; state.notice=''; setPage('overview'); return;
   }
-  if (id === 'shock-start') state.shockStart=Number(value);
-  if (id === 'shock-duration') state.shockDuration=Number(value);
+  if (id === 'shock-start') { state.shockStart=Number(value); invalidateScenario(); render(); return; }
+  if (id === 'shock-duration') { state.shockDuration=Number(value); invalidateScenario(); render(); return; }
   if (id === 'shock-amount') {
-    if (state.shockType==='one_time_cost') state.oneTimeAmount=Number(value);
-    else state.shockAmount=Number(value);
-    state.scenario=null; state.goalResult=null; render(); return;
+    if (state.shockType==='one_time_cost') state.oneTimeAmount=value.trim() === '' ? NaN : Number(value);
+    else state.shockAmount=value.trim() === '' ? NaN : Number(value);
+    invalidateScenario(); render(); return;
   }
   if (id === 'activity-category') { state.activityCategory=value; render(); }
 });
 
 document.addEventListener('input', event => {
   if (event.target.id === 'shock-slider') {
-    state.shockAmount=Number(event.target.value); state.scenario=null; state.goalResult=null;
+    state.shockAmount=Number(event.target.value); invalidateScenario();
     const amountInput=document.querySelector('#shock-amount'); if (amountInput) amountInput.value=String(state.shockAmount);
+  }
+  if (event.target.id === 'shock-amount') {
+    const value = event.target.value;
+    if (state.shockType==='one_time_cost') state.oneTimeAmount=value.trim() === '' ? NaN : Number(value);
+    else state.shockAmount=value.trim() === '' ? NaN : Number(value);
+    invalidateScenario();
+  }
+  if (['goal-name','goal-target','goal-saved','goal-months'].includes(event.target.id)) {
+    updateGoalDraft();
+    invalidateGoalPlan();
   }
   if (event.target.id === 'activity-search') {
     state.activitySearch=event.target.value;
