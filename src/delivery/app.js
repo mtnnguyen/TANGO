@@ -1,13 +1,13 @@
 import { currency, percent } from '../domain/finance.js';
 import { customerService } from './customerService.js';
-import { renderDataLab, selectedResearchAccountId, handleDataLabClick, handleDataLabInput, handleDataLabSubmit } from './dataLab.js';
+import { renderDataLab, preloadResearch, selectedResearchAccountId, handleDataLabClick, handleDataLabInput, handleDataLabSubmit } from './dataLab.js';
 
 const { listCustomers, getCustomerContext, runCustomerScenario, calculateCustomerGoal } = customerService;
 
 const customers = listCustomers();
 const state = {
   customerId: customers[0].id,
-  page: 'overview',
+  page: 'dataset',
   shockType: 'income_drop',
   shockAmount: 35,
   oneTimeAmount: 1800,
@@ -63,18 +63,19 @@ function brandmark(size = 39) {
 }
 
 function shell(context) {
+  const navButton = ([key, name, symbol]) => `<button type="button" class="nav-item ${state.page === key ? 'active' : ''}" data-nav="${key}" aria-label="${esc(name)}" title="${esc(name)}" ${state.page === key ? 'aria-current="page"' : ''}>${icon(symbol, 19)}<span>${name}</span>${state.page === key ? '<i></i>' : ''}</button>`;
   return `<div class="app-shell ${state.menuOpen ? 'show-menu' : ''}">
     <aside class="sidebar" aria-label="Main navigation">
       <div class="brand">${brandmark()}<div class="brand-name">TANGO<span class="brand-period">.</span><small>Banking for life's changes</small></div></div>
-      <div class="side-label">YOUR SPACE</div>
-      <nav class="side-nav">${nav.map(([key, name, symbol]) => `<button type="button" class="nav-item ${state.page === key ? 'active' : ''}" data-nav="${key}" ${state.page === key ? 'aria-current="page"' : ''}>${icon(symbol, 19)}<span>${name}</span>${state.page === key ? '<i></i>' : ''}</button>`).join('')}</nav>
+      <div class="side-label">YOUR WORKSPACES</div>
+      <nav class="side-nav" aria-label="TANGO workspaces"><div class="side-label nav-subhead">COMPETITION DATA</div>${nav.slice(0,1).map(navButton).join('')}<div class="side-label nav-subhead">FICTIONAL PREVIEW</div>${nav.slice(1).map(navButton).join('')}</nav>
       <div class="sidebar-bottom">
-        <div class="tip-card"><div class="tip-icon">${icon('sparkles', 19)}</div><div class="tip-title">A little more prepared.</div><p>Explore what happens when life takes an unexpected turn.</p><button data-nav="scenario" class="tip-link">Try a what-if scenario ${icon('arrow', 15)}</button></div>
+        <div class="tip-card"><div class="tip-icon">${icon('sparkles', 19)}</div><div class="tip-title">A little more prepared.</div><p>Test real anonymized account patterns against life's what-ifs.</p><button data-nav="dataset" class="tip-link">Explore a real account ${icon('arrow', 15)}</button></div>
         <div class="side-foot">Built for the Sheridan Datathon<br/><span>Financial resilience · 2026</span></div>
       </div>
     </aside>
     <div class="content-shell"><header class="topbar">
-      <div class="top-left"><button class="mobile-toggle" aria-label="Toggle navigation" data-action="menu">${icon('menu')}</button><span class="breadcrumb">My financial space</span><span class="breadcrumb-separator">/</span><strong>${nav.find(item => item[0] === state.page)?.[1]}</strong></div>
+      <div class="top-left"><button class="mobile-toggle" aria-label="Toggle navigation" data-action="menu">${icon('menu')}</button><span class="breadcrumb">${state.page === 'dataset' ? 'Research workspace' : 'Fictional customer preview'}</span><span class="breadcrumb-separator">/</span><strong>${nav.find(item => item[0] === state.page)?.[1]}</strong></div>
       <div class="top-actions">${state.page === 'dataset' ? `<span class="demo-pill"><span></span> HISTORICAL · ANONYMIZED</span><div class="account-control"><span class="avatar" style="--avatar:#fff0e4">#</span><div class="account-names"><strong>${selectedResearchAccountId() ? `Account ${selectedResearchAccountId()}` : 'Account explorer'}</strong><small>Competition dataset</small></div></div>` : `<span class="demo-pill"><span></span> LIVE DEMO · FICTIONAL DATA</span><div class="account-control"><span class="avatar" style="--avatar:${context.tone}">${context.initials}</span><div class="account-names"><strong>${esc(context.name)}</strong><small>Demo customer</small></div>${icon('chevron', 16)}<select id="customer-select" aria-label="Switch demo customer">${customers.map(c => `<option value="${c.id}" ${state.customerId === c.id ? 'selected' : ''}>${esc(c.name)} — ${esc(c.role)}</option>`).join('')}</select></div>`}</div>
     </header><main class="main" id="main-content">${renderPage(context)}</main>
     <footer class="footer"><span>${brandmark(22)} TANGO</span><span>Illustrative demo only. Not a bank, account service, or financial adviser.</span><span>Made with care, for life's what-ifs.</span></footer></div>
@@ -237,6 +238,7 @@ function updateGoalDraft() {
 function setPage(page) {
   state.page = page; state.menuOpen = false; state.notice = '';
   render(); window.scrollTo({ top: 0, behavior: 'instant' });
+  if (page === 'dataset') void preloadResearch();
 }
 
 function readShock() {
@@ -327,3 +329,5 @@ document.addEventListener('submit', event => {
 });
 
 render();
+// A static research summary is safe to preload; the full account extract remains lazy.
+if (typeof window?.location?.href === 'string') void preloadResearch();

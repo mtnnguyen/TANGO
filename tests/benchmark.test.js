@@ -47,7 +47,30 @@ test('goal requires explicit target, amount saved and deadline', () => {
   const g = planAccountGoal(summary, r, { targetCents: 300000, savedCents: 60000, months: 12 });
   assert.equal(g.requiredMonthlyCents, 20000);
   assert.equal(g.baselineAdjustmentCents, 0);
-  assert.equal(g.shockAdjustmentCents, 115000);
+  assert.equal(g.shockAdjustmentCents, 17500);
+  assert.equal(g.shockMonthsWithinGoal, 6);
+});
+
+test('goal backup ignores a shock that begins after the goal deadline', () => {
+  const r = evaluateAccountShock(summary, { ...shock, startMonth: 12 });
+  const g = planAccountGoal(summary, r, { targetCents: 300000, savedCents: 0, months: 3 });
+  assert.equal(g.shockMonthsWithinGoal, 0);
+  assert.equal(g.shockAdjustmentCents, 0);
+  assert.equal(g.oneOffWithinGoalCents, 0);
+});
+
+test('goal backup includes a one-off repair only when it occurs within the deadline', () => {
+  const goal = { targetCents: 300000, savedCents: 0, months: 3 };
+  const during = evaluateAccountShock(summary, {
+    ...shock, incomeRetainedPercent: 100, householdIncreasePercent: 0,
+    oneOffCostCents: 90000, startMonth: 2, durationMonths: 1,
+  });
+  const withRepair = planAccountGoal(summary, during, goal);
+  assert.equal(withRepair.shockMonthsWithinGoal, 1);
+  assert.equal(withRepair.oneOffWithinGoalCents, 90000);
+  assert.equal(withRepair.shockAdjustmentCents, 30000);
+  const after = evaluateAccountShock(summary, { ...during.shock, startMonth: 12 });
+  assert.equal(planAccountGoal(summary, after, goal).shockAdjustmentCents, 0);
 });
 
 test('research extract contains 4,500 distinct account IDs and no identifying client fields', () => {
