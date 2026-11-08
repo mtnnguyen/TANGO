@@ -1,0 +1,14 @@
+{
+  "name": "tango-resilience",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "An explainable financial resilience demo with synthetic customer data",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check src/domain/finance.js && node --check src/domain/goals.js && node --check src/application/customerService.js && node --check src/delivery/app.js",
+    "build": "node scripts/build.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

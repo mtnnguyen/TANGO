@@ -1,12 +1,55 @@
 # TANGO
 
-**Status:** Clean project foundation. TANGO is a new financial-resilience application informed by lessons from the Pulp datathon prototype. No customer-data pipeline, financial engine, AI planning council, authentication, or production deployment has been implemented in this repository yet.
+**Status:** Working, self-contained customer-facing prototype with synthetic customer fixtures, a deterministic financial-resilience engine, goals, activity browsing and automated unit tests. This is **not** connected to real accounts, a banking API, or a production authentication system.
 
 ## Mission
 
 Help people understand how changing income affects financial stability, explore explainable what-if scenarios, and plan realistic steps toward their personal goals.
 
 > Financial security isn't just about how much you earn. It's about how prepared you are when that income changes.
+
+## Run the prototype
+
+Node.js 20+ is required. No package installation, API keys, database or environment variables are needed.
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:4173`.
+
+```bash
+npm run check  # checks JavaScript module syntax
+npm test       # domain and customer-isolation tests
+npm run build  # copies a static, deployable site to dist/
+```
+
+The site is a standards-based, responsive ESM application with zero runtime dependencies. It works offline after loading; a remote font is optional and falls back to system fonts. A static hosting provider can serve `dist/` from its root. Do not deploy or change repo settings without human approval.
+
+## What actually works
+
+- **Overview:** selected customer, sample monthly income and spending, cash buffer, illustrative no-shock trend and recent transactions.
+- **Resilience lab:** explicitly approve a scenario with a drop in income, increase in expenses or one-time cost. Edit the shock amount, start month, and duration; see monthly balances, the first unfunded shortfall, and the extra cash buffer required within 12 months.
+- **Goals:** enter the goal name, exact amount, already-saved amount and deadline. TANGO computes a required monthly contribution and tests it against current income/spending (or the latest approved scenario).
+- **Activity:** search and filter synthetic transactions, strictly scoped to the chosen fictional customer.
+- **How it works:** visible calculation assumptions and honest limitations.
+
+Switching customers discards the previous customer's scenario and goal work. Neither those calculations nor transactions are saved. This is intentional for a privacy-safe demonstration.
+
+## Design and calculation boundaries
+
+| Layer | Files | Purpose |
+|---|---|---|
+| Domain | `src/domain/` | Pure cents-based shock and goal calculations; validation; no UI or I/O |
+| Application | `src/application/` | Customer-scoped use cases and ownership checks |
+| Infrastructure | `src/infrastructure/` | Three fictional customer fixtures, isolated per account |
+| Delivery | `src/delivery/`, `index.html` | Accessible browser flows, scenario controls, charts and responsive styling |
+
+Transactions are intentionally **not** used to infer the monthly summary: the sample transaction lists are incomplete illustrative records, while the monthly financial snapshots are explicitly entered sample fixture values. No historical trend, statistical significance, or real customer behaviour is asserted.
+
+The resilience engine models cash changes month by month, beginning with liquid savings. It includes baseline net cash flow, applies the specified shock in the specified months, and reports the first month savings fall below $0. A negative result is an **unfunded shortfall, not a bank-approved overdraft**. No interest, tax changes, credit facilities, investment returns or other implicit safety net are assumed. The goal result is an educational calculation, not individual financial advice.
+
+For data definitions, assumptions, and known extensions, see [docs/architecture.md](docs/architecture.md).
 
 ## Non-negotiable product rules
 
@@ -37,14 +80,14 @@ Agents are **not autonomous background workers**, and they are not TANGO's event
 
 The original [Pulp prototype](https://github.com/AhmadAli137/pulp) is a **read-only research reference** for architecture, pitfalls and feature behaviour. **No agent may create issues, branches, commits, or any other changes in that repository.** TANGO is the sole development destination. Do not import data, secrets, licenses, or code without provenance and permission checks.
 
-## Starting roadmap
+## Next roadmap
 
-1. Inventory reference functionality and known limitations without copying implementation.
-2. Create an evidence-based issue backlog and a small synthetic test fixture.
-3. Define customer/account and scenario contracts before implementing integrations.
-4. Deliver one vertical slice: selected customer → approved shock → verified calculation → understandable result → personal goal choice.
-5. Review every change against the architecture and data-integrity checks.
+1. Independently reproduce defensible empirical insights from licensed public datasets, with a documented data dictionary and checked joins.
+2. Add accessible comparative scenario views and goal plan acceptance (distinct from merely running a simulation).
+3. Add a real authenticated API boundary, consent model, audit trail and authorized bank integrations only with appropriate agreements.
+4. Obtain independent review of the domain and UI; test browser flows and accessibility across devices.
+5. Investigate an optional language model for **plain-language explanations only**, never the source of numbers.
 
 See `AGENTS.md`, `.github/copilot-instructions.md`, and `docs/` for working agreements.
 
-**Not a banking integration or personalized financial-advice service.**
+**Not a bank, banking integration, or personalized financial-advice service.**
