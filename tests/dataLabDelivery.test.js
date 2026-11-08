@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { renderDataLab, handleDataLabSubmit, handleDataLabClick, handleDataLabInput, selectedResearchAccountId } from '../src/delivery/dataLab.js';
+import { renderDataLab, preloadResearch, handleDataLabSubmit, handleDataLabClick, handleDataLabInput, selectedResearchAccountId } from '../src/delivery/dataLab.js';
 
 const data = JSON.parse(readFileSync(new URL('../public/data/account_summaries.json', import.meta.url)));
 const findings = JSON.parse(readFileSync(new URL('../public/data/research_findings.json', import.meta.url)));
@@ -9,8 +9,10 @@ const findings = JSON.parse(readFileSync(new URL('../public/data/research_findin
 test('account explorer loads an exact ID, re-evaluates a twist, and clears state between accounts', async () => {
   const fields = { '#lab-account-id': { value: '20111' } };
   const staleResult = { innerHTML: '' };
+  const researchBanner = { outerHTML: 'OLD' };
   globalThis.document = { querySelector(selector) {
     if (selector === '.lab-result') return staleResult;
+    if (selector === '.lab-research') return researchBanner;
     return fields[selector] ?? null;
   } };
   const originalFetch = globalThis.fetch;
@@ -25,6 +27,11 @@ test('account explorer loads an exact ID, re-evaluates a twist, and clears state
   try {
     assert.equal(selectedResearchAccountId(), null);
     assert.match(renderDataLab(), /4,500 accounts available/);
+    await preloadResearch(render);
+    assert.match(researchBanner.outerHTML, /Highest money-in quartile/);
+    assert.equal(fields['#lab-account-id'].value, '20111');
+    assert.match(renderDataLab(), /Highest money-in quartile/);
+    assert.match(renderDataLab(), /22\.9%/);
     await handleDataLabSubmit(submit('lab-account-form'), render);
     assert.equal(selectedResearchAccountId(), '20111');
     assert.match(renderDataLab(), /Account #20111/);
@@ -39,6 +46,10 @@ test('account explorer loads an exact ID, re-evaluates a twist, and clears state
     handleDataLabInput({ target: { id: 'lab-retained', value: '100' } });
     assert.doesNotMatch(staleResult.innerHTML, /STALE/);
     assert.doesNotMatch(renderDataLab(), /SHOCK OUTCOME/);
+    // Goal validation errors must appear directly inside the goal form, not the search panel.
+    await handleDataLabSubmit(submit('lab-goal-form'), render);
+    assert.match(renderDataLab(), /Calculate the selected shock above/);
+    assert.doesNotMatch(renderDataLab().split('lab-search-panel')[1].split('lab-account-heading')[0], /Calculate the selected shock above/);
     // A customer switch clears all old results and plan state.
     const secondId = Object.keys(data.accounts).find(id => id !== '20111');
     fields['#lab-account-id'].value = secondId;

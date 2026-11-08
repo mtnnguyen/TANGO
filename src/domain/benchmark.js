@@ -67,14 +67,24 @@ export function planAccountGoal(summary, scenario, goal) {
     throw new RangeError('Goal deadline must be 1–120 months');
   }
   if (goal.savedCents > goal.targetCents) throw new RangeError('Amount saved cannot exceed target');
-  if (!scenario || !Number.isFinite(scenario.gap)) throw new TypeError('Evaluate a scenario first');
+  if (!scenario || !Number.isFinite(scenario.gap) || !scenario.shock) throw new TypeError('Evaluate a scenario first');
   const requiredMonthlyCents = Math.ceil((goal.targetCents - goal.savedCents) / goal.months);
   const baselineAvailableCents = toCents(summary.income) - toCents(summary.spending);
-  const shockAvailableCents = scenario.incomeAfter - scenario.spendingAfter;
+  const duringShockAvailableCents = scenario.incomeAfter - scenario.spendingAfter;
+  const { startMonth, durationMonths, oneOffCostCents } = scenario.shock;
+  // The customer's goal has its own deadline. Only shock months that actually
+  // intersect that deadline may affect the required goal contributions.
+  const shockMonthsWithinGoal = Math.max(0, Math.min(goal.months, startMonth + durationMonths - 1) - startMonth + 1);
+  const oneOffWithinGoalCents = startMonth <= goal.months ? oneOffCostCents : 0;
+  const netCashOverGoalCents = baselineAvailableCents * (goal.months - shockMonthsWithinGoal)
+    + duringShockAvailableCents * shockMonthsWithinGoal - oneOffWithinGoalCents;
+  const remainingGoalCents = goal.targetCents - goal.savedCents;
   return {
-    requiredMonthlyCents, baselineAvailableCents, shockAvailableCents,
+    requiredMonthlyCents, baselineAvailableCents,
+    averageAfterShockCents: Math.floor(netCashOverGoalCents / goal.months),
+    shockMonthsWithinGoal, oneOffWithinGoalCents,
     baselineAdjustmentCents: Math.max(0, requiredMonthlyCents - baselineAvailableCents),
-    shockAdjustmentCents: Math.max(0, requiredMonthlyCents - shockAvailableCents),
+    shockAdjustmentCents: Math.max(0, Math.ceil((remainingGoalCents - netCashOverGoalCents) / goal.months)),
     targetCents: goal.targetCents, savedCents: goal.savedCents, months: goal.months,
   };
 }

@@ -144,6 +144,14 @@ a{
   margin-bottom:17px
 }
 
+.nav-subhead{
+  margin:15px 0 7px;
+  padding:0 14px;
+  color:#929690;
+  font-size:10px;
+  letter-spacing:.08em
+}
+
 .side-nav{
   display:flex;
   flex-direction:column;

@@ -2,13 +2,13 @@
 
 ## Sheridan Datathon: account explorer
 
-Open **Account explorer** in the sidebar to inspect any of the 4,500 anonymized account IDs in the provided Tangerine-track data extract. It shows the track benchmark income, spending, fixed costs, and six-month buffer; runs arbitrary income, household-bill, one-time-cost, timing and duration shocks; and builds explicitly user-defined emergency fund and backup plans. The other customer screens are **fictional demonstration personas** kept separate from the historical account explorer.
+TANGO opens in **Account explorer**, where a judge can enter any of the 4,500 anonymized account IDs in the provided Tangerine-track extract. It shows the track benchmark money-in, spending, fixed costs, and six-month buffer; runs bounded income-credit, household-bill, one-time-cost, timing, and duration shocks; and builds explicitly user-defined emergency fund and backup plans. The other customer screens are **fictional demonstration personas** kept separate from the historical account explorer.
 
-The historical dataset covers 2020–2025. TANGO is a prototype, not a bank account service. See [research methodology, precise equations and limitations](docs/research.md). The public demo contains derived, anonymized account-level aggregates only, not raw transactions or client identities.
+The historical dataset covers 2020–2025. TANGO is a prototype, not a bank account service. See [research methodology, precise equations and limitations](docs/research.md). The checked-in research extract contains derived, anonymized account-level aggregates only, not raw transactions or client identities. **Confirm organizer redistribution permission before publishing these account-level aggregates in a public repository.**
 
 To reproduce the summary from organizer-provided files, run `python3 scripts/prepare_bank_data.py --data-dir /path/to/competition/csvs`. Run `npm run check`, `npm test`, `python3 -m unittest discover -s tests -p '*_test.py'`, and `npm run build` locally; `.github/workflows/ci.yml` runs these checks on pull requests.
 
-**Status:** Working, self-contained customer-facing prototype with synthetic customer fixtures, a deterministic financial-resilience engine, goals, activity browsing and automated unit tests. This is **not** connected to real accounts, a banking API, or a production authentication system.
+**Status:** Working, self-contained prototype with two explicitly separated modes: a historical anonymized account explorer and a synthetic consumer-dashboard preview. Financial calculations are deterministic and tested. There is **no** live bank connection, banking API, login, or production authentication system.
 
 ## Mission
 
@@ -32,11 +32,12 @@ npm test       # domain and customer-isolation tests
 npm run build  # copies a static, deployable site to dist/
 ```
 
-The site is a standards-based, responsive ESM application with zero runtime dependencies. It works offline after loading; a remote font is optional and falls back to system fonts. A static hosting provider can serve `dist/` from its root. Do not deploy or change repo settings without human approval.
+The site is a standards-based, responsive ESM application with zero runtime dependencies. It loads the account-level extract on the first account search; a remote font is optional and falls back to system fonts. A static hosting provider can serve `dist/` from its root. Do not deploy or change repo settings without human approval.
 
 ## What actually works
 
-- **Overview:** selected customer, sample monthly income and spending, cash buffer, illustrative no-shock trend and recent transactions.
+- **Account explorer (default):** select an anonymized account, apply benchmark-compatible or custom combined shocks, see runway math, and enter a dated goal with a shock-aware backup calculation.
+- **Overview (fictional preview):** selected customer, sample monthly income and spending, cash buffer, illustrative no-shock trend and recent transactions.
 - **Resilience lab:** explicitly approve a scenario with a drop in income, increase in expenses or one-time cost. Edit the shock amount, start month, and duration; see monthly balances, the first unfunded shortfall, and the extra cash buffer required within 12 months.
 - **Goals:** enter the goal name, exact amount, already-saved amount and deadline. TANGO computes a required monthly contribution and tests it against current income/spending (or the latest approved scenario).
 - **Activity:** search and filter synthetic transactions, strictly scoped to the chosen fictional customer.
@@ -50,10 +51,10 @@ Switching customers discards the previous customer's scenario and goal work. Nei
 |---|---|---|
 | Domain | `src/domain/` | Pure cents-based shock and goal calculations; validation; no UI or I/O |
 | Application | `src/application/` | Customer-scoped use cases and ownership checks |
-| Infrastructure | `src/infrastructure/` | Three fictional customer fixtures, isolated per account |
+| Infrastructure | `src/infrastructure/` | Lazy-loaded anonymized account aggregates and three separately labelled fictional fixtures |
 | Delivery | `src/delivery/`, `index.html` | Accessible browser flows, scenario controls, charts and responsive styling |
 
-Transactions are intentionally **not** used to infer the monthly summary: the sample transaction lists are incomplete illustrative records, while the monthly financial snapshots are explicitly entered sample fixture values. No historical trend, statistical significance, or real customer behaviour is asserted.
+In the **fictional preview**, transaction lists are illustrative, incomplete sample records and do not support the sample monthly snapshot amounts. In **Account explorer**, historical figures are computed from the provided `monthly_summary.csv` account rows only, using the published track definitions. See [research methods](docs/research.md) for descriptive findings and caveats; do not generalize those findings beyond the supplied dataset.
 
 The resilience engine models cash changes month by month, beginning with liquid savings. It includes baseline net cash flow, applies the specified shock in the specified months, and reports the first month savings fall below $0. A negative result is an **unfunded shortfall, not a bank-approved overdraft**. No interest, tax changes, credit facilities, investment returns or other implicit safety net are assumed. The goal result is an educational calculation, not individual financial advice.
 

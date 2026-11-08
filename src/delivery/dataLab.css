@@ -6,6 +6,17 @@
 .lab-research-title>span{color:#ffba98;font-weight:800;font-size:10px;letter-spacing:.09em}
 .lab-research h2{font-size:clamp(20px,2.3vw,29px);margin:8px 0;letter-spacing:-.035em}
 .lab-research p{color:#d4dad6;font-size:12px;line-height:1.7;max-width:660px;margin:0}
+.lab-research-loading{min-height:180px;display:flex;align-items:center}
+.lab-research-loading .panel-kicker{color:#ffba98}
+.lab-research-loading p{max-width:580px}
+.lab-comparison{display:grid;gap:11px;margin:17px 0 13px;max-width:560px}
+.lab-comparison>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;align-items:center}
+.lab-comparison span{font-size:11px;color:#f1f3ee;font-weight:650}
+.lab-comparison strong{font-size:12px;color:#ffbf9b}
+.lab-comparison i{height:8px;border-radius:8px;background:#4c5550;grid-column:1 / -1;overflow:hidden}
+.lab-comparison b{display:block;height:100%;min-width:3px;background:#ff9b65;border-radius:8px}
+.lab-comparison>div:nth-child(2) b{background:#d2d9d1}
+.lab-research .lab-research-caveat{color:#b4c0b8;font-size:10px;margin:0}
 .lab-research-number{text-align:center;border-left:1px solid #59625a;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;z-index:1;padding:4px 0 4px 20px}
 .lab-research-number strong{color:#ffad85;font-size:48px;font-family:Manrope,sans-serif;line-height:1.15;letter-spacing:-.07em}
 .lab-research-number span{color:#d6dcd6;font-size:11px;line-height:1.6}
@@ -20,6 +31,9 @@
 .lab-input-row input:focus-visible{outline:0}
 .lab-input-row em{font-size:10px;font-style:normal;color:#899088;padding:0 11px 0 3px;white-space:nowrap}
 .lab-source{font-size:10px;color:#969b95;margin:16px 0 0;line-height:1.55}
+.lab-example{font-size:11px;color:#8d958b;margin-top:13px;line-height:1.7}
+.lab-example button{background:transparent;border:none;color:#bd6037;font-size:inherit;font-weight:800;text-decoration:underline;text-underline-offset:3px;padding:0}
+.lab-example button:hover{color:#923e20}
 .lab-source a{text-decoration:underline;color:#c56a43}
 .lab-account-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:30px 0 16px}
 .lab-account-heading h2{font-size:26px;letter-spacing:-.05em;margin:5px 0}
@@ -32,6 +46,7 @@
 .lab-minor-facts{display:flex;flex-wrap:wrap;gap:10px;margin:13px 0 26px}
 .lab-minor-facts span{background:#f5f3f0;border-radius:30px;font-size:10px;color:#82867e;padding:10px 14px}
 .lab-minor-facts strong{color:#343c35;margin-left:6px}
+.lab-data-note{font-size:11px;line-height:1.65;color:#947751;background:#fff7eb;border:1px solid #f2e3cb;border-radius:9px;padding:11px 14px;margin:0 0 24px}
 .lab-workspace{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,.88fr);gap:20px;align-items:start;margin-top:18px}
 .lab-workspace>div{display:flex;flex-direction:column;gap:20px;min-width:0}
 .lab-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}
@@ -68,6 +83,14 @@
 .lab-goal-outcome strong{color:#2f3f32}
 .lab-bottom-source{margin:28px 0 0;text-align:center}
 .lab-message{font-size:11px;color:#a66e4a;margin-top:12px}
+.lab-page .panel-kicker{font-size:11px}
+.lab-page .panel-desc{font-size:12px}
+.lab-field{font-size:12px}
+.lab-source,.lab-metric small,.lab-apply-bar>span{font-size:11px}
+.lab-metric>span,.lab-research-number span,.lab-comparison span{font-size:12px}
+.lab-research p{font-size:13px}
+.lab-research .lab-research-caveat{font-size:11px}
+.lab-condition{font-size:10px}
 @media(max-width:1180px){.lab-workspace{grid-template-columns:1fr}.lab-workspace>div:nth-child(2){display:grid;grid-template-columns:1fr 1fr;align-items:start}.lab-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:800px){.lab-research{grid-template-columns:1fr}.lab-research-number{border:0;border-top:1px solid #59625a;align-items:flex-start;text-align:left;padding:18px 0 0}.lab-workspace>div:nth-child(2){display:flex;flex-direction:column}.lab-account-heading{align-items:flex-start;flex-direction:column}}
 @media(max-width:530px){.lab-search-panel,.lab-shock-panel,.lab-goals,.lab-result{padding:21px 18px}.lab-lookup{flex-direction:column;align-items:stretch}.lab-field-grid{grid-template-columns:1fr}.lab-lookup button{width:100%}.lab-metrics{gap:8px}.lab-metric{padding:16px 11px}.lab-metric strong{font-size:17px}.lab-apply-bar{align-items:stretch;flex-direction:column}.lab-apply-bar button{width:100%}}
